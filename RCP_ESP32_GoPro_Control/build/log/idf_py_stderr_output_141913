@@ -1,0 +1,4 @@
+/home/anton/alex-anton/RCP_ESP32_GoPro_Control/components/camera_control/src/camera_control.c: In function 'camera_setup_udp':
+/home/anton/alex-anton/RCP_ESP32_GoPro_Control/components/camera_control/src/camera_control.c:51:24: warning: variable 'dest_addr' set but not used [-Wunused-but-set-variable]
+   51 |     struct sockaddr_in dest_addr;
+      |                        ^~~~~~~~~
