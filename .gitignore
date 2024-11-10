@@ -1,0 +1,39 @@
+# Ignore build artifacts
+/build/
+/*.o
+*.elf
+*.bin
+*.map
+
+# CMake generated files
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# ESP-IDF specific temporary files
+*.log
+sdkconfig
+sdkconfig.old
+sdkconfig.*
+partitions*.bin
+
+# VSCode IDE files
+.vscode/
+
+# JetBrains IDE files (e.g., CLion)
+.idea/
+cmake-build-debug/
+cmake-build-release/
+
+# Core dump files (for debugging crashes)
+core
+
+# Python bytecode files
+__pycache__/
+*.pyc
+
+# OS-specific files
+.DS_Store  # macOS
+Thumbs.db  # Windows
+

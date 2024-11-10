@@ -1,9 +1,3 @@
-<<<<<<< HEAD
-=======
-# alex-anton
-Current project tree:
->>>>>>> 190f08076a103d8840b36db7b9e79a98eb01ce27
-```
 ```
 .
 ├── project_structure.txt
@@ -28,5 +22,6 @@ Current project tree:
 └── README.md
 
 6 directories, 14 files
+```
 ```
 ```
