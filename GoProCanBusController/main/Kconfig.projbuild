@@ -1,0 +1,41 @@
+menu "Configuration"
+
+    config ESP_WIFI_SSID
+        string "WiFi SSID"
+        default "HERO-RC-000000"
+        help
+            SSID (network name) for the example to connect to.
+
+    config ESP_WIFI_PASSWORD
+        string "WiFi Password"
+        default ""
+        help
+            WiFi password (WPA or WPA2) for the example to use.
+    config ESP_WIFI_CHANNEL
+        int "WiFi Channel"
+        range 1 13
+        default 1
+        help
+            WiFi channel (network channel) for the example to use.
+
+    config ESP_MAX_STA_CONN
+        int "Maximal STA connections"
+        default 4
+        help
+            Max number of the STA connects to AP.
+    config STATIC_IP_ADDR
+        string "Acces Point IP"
+        default "10.71.79.1"
+        help
+            IP address of the Soft AP.
+    config STATIC_NETMASK_ADDR
+        string "Network Mask"
+        default "255.255.255.0"
+        help
+            IP address of the Soft AP.
+    config STATIC_GW_ADDR  
+        string "Gateway Address"
+        default "10.71.79.1"
+        help
+            IP address of the Soft AP Gateway.
+endmenu
