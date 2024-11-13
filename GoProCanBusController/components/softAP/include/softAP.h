@@ -22,12 +22,6 @@
 #include "lwip/err.h"
 #include "lwip/sys.h"
 
-// // Define constants if not already defined
-// #define ESP_WIFI_SSID      "your_ssid"
-// #define ESP_WIFI_PASS      "your_password"
-// #define ESP_WIFI_CHANNEL   1
-// #define MAX_STA_CONN       4
-
 #define ESP_WIFI_SSID           CONFIG_ESP_WIFI_SSID
 #define ESP_WIFI_PASS           CONFIG_ESP_WIFI_PASSWORD
 #define ESP_WIFI_CHANNEL        CONFIG_ESP_WIFI_CHANNEL
