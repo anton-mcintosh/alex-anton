@@ -12,6 +12,8 @@
 #include "esp_event.h"
 #include "esp_netif.h"
 #include "esp_log.h"
+#include <esp_http_server.h>
+#include <esp_http_client.h>
 #include <netdb.h>
 #include "nvs_flash.h"
 #include "esp_types.h"
@@ -33,6 +35,8 @@
 // Externally accessible functions
 void wifi_init_softap(void);
 
+void start_recording(httpd_req_t *req);
+void stop_recording(httpd_req_t *req);
 // If these event handlers are needed externally, declare them here
 // Otherwise, you can keep them static in softAP.c
 void wifi_event_handler(void* arg, esp_event_base_t event_base,
