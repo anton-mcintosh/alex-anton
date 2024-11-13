@@ -7,12 +7,24 @@ static const char *TAG = "webserver";
 static esp_err_t get_handler(httpd_req_t *req)
 {
     const char *response_message = "<!DOCTYPE HTML><html><head>\
-                                    <title>Static HTML page</title>\
+                                    <title>Interactive Page</title>\
                                     <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\
                                     </head><body>\
-                                    <h1>This is a static HTML page</h1>\
+                                    <h1>ESP32 HTTP Server</h1>\
+                                    <form action=\"/trigger\" method=\"post\">\
+                                    <button type=\"submit\">Trigger Event</button>\
+                                    </form><br>\
                                     </body></html>";
     httpd_resp_send(req, response_message, HTTPD_RESP_USE_STRLEN);
+    return ESP_OK;
+}
+
+static esp_err_t post_handler(httpd_req_t *req)
+{
+    ESP_LOGI("webserver", "Button clicked! Event triggered.");
+
+    // Send a response back to the client
+    httpd_resp_send(req, "Button clicked! Event triggered on ESP32.", HTTPD_RESP_USE_STRLEN);
     return ESP_OK;
 }
 
@@ -37,5 +49,14 @@ void server_initiation(void)
     };
     httpd_register_uri_handler(server_handle, &uri_get);
 
-    ESP_LOGI(TAG, "HTTP server started");
+    // Register the POST handler
+    httpd_uri_t uri_post = {
+        .uri = "/trigger",
+        .method = HTTP_POST,
+        .handler = post_handler,
+        .user_ctx = NULL
+    };
+    httpd_register_uri_handler(server_handle, &uri_post);
+
+    ESP_LOGI(TAG, "HTTP server started and handlers registered");
 }
