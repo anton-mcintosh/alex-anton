@@ -1,5 +1,6 @@
 #include "webServer.h"
 #include "softAP.h"
+#include "shutter.h"
 
 static const char *TAG = "webserver";
 
@@ -11,8 +12,8 @@ static esp_err_t get_handler(httpd_req_t *req)
                                     <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\
                                     </head><body>\
                                     <h1>ESP32 HTTP Server</h1>\
-                                    <form action=\"/trigger\" method=\"post\">\
-                                    <button type=\"submit\">Trigger Event</button>\
+                                    <form action=\"/start\" method=\"post\">\
+                                    <button type=\"submit\">Start Recording</button>\
                                     </form><br>\
                                     <form action=\"/stop\" method=\"post\">\
                                     <button type=\"submit\">Stop Recording</button>\
@@ -26,7 +27,6 @@ static esp_err_t post_handler(httpd_req_t *req)
 {
     ESP_LOGI("webserver", "Button clicked! Event triggered.");
 
-    // Send a response back to the client
     if (strcmp(req->uri, "/trigger") == 0) {
       start_recording(req);
     }
@@ -64,7 +64,7 @@ void server_initiation(void)
 
     // Register the POST handler
     httpd_uri_t uri_post = {
-        .uri = "/trigger",
+        .uri = "/start",
         .method = HTTP_POST,
         .handler = post_handler,
         .user_ctx = NULL
