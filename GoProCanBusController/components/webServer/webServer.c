@@ -7,19 +7,24 @@ static const char *TAG = "webserver";
 // Static function for handling HTTP GET requests
 static esp_err_t get_handler(httpd_req_t *req)
 {
-    const char *response_message = "<!DOCTYPE HTML><html><head>\
-                                    <title>Interactive Page</title>\
-                                    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\
-                                    </head><body>\
-                                    <h1>ESP32 HTTP Server</h1>\
-                                    <form action=\"/start\" method=\"post\">\
-                                    <button type=\"submit\">Start Recording</button>\
-                                    </form><br>\
-                                    <form action=\"/stop\" method=\"post\">\
-                                    <button type=\"submit\">Stop Recording</button>\
-                                    </form><br>\
-                                    </body></html>";
-    httpd_resp_send(req, response_message, HTTPD_RESP_USE_STRLEN);
+    // Open the HTML file
+    FILE *file = fopen("/spiffs/index.html", "r");
+    if (file == NULL) {
+        ESP_LOGE(TAG, "Failed to open index.html");
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "File not found");
+        return ESP_FAIL;
+    }
+
+    // Read and send file content in chunks (chunked encoding)
+    char buffer[128];
+    size_t read_bytes;
+    while ((read_bytes = fread(buffer, 1, sizeof(buffer), file)) > 0) {
+        httpd_resp_send_chunk(req, buffer, read_bytes);
+    }
+    fclose(file);
+    
+    // Indicate the end of the response
+    httpd_resp_send_chunk(req, NULL, 0);
     return ESP_OK;
 }
 
@@ -27,7 +32,7 @@ static esp_err_t post_handler(httpd_req_t *req)
 {
     ESP_LOGI("webserver", "Button clicked! Event triggered.");
 
-    if (strcmp(req->uri, "/trigger") == 0) {
+    if (strcmp(req->uri, "/start") == 0) {
       start_recording(req);
     }
     else if (strcmp(req->uri, "/stop") == 0) {
