@@ -1,4 +1,4 @@
 idf_component_register(SRCS "cameraInfo.c" "shutter.c"
-                    INCLUDE_DIRS "."
+                    INCLUDE_DIRS "include"
                     REQUIRES esp_http_client esp_http_server softAP)
 
