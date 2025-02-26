@@ -1,6 +1,7 @@
 #include "webServer.h"
 #include "softAP.h"
 #include "shutter.h"
+#include "cameraInfo.h"
 
 static const char *TAG = "webserver";
 
@@ -38,6 +39,9 @@ static esp_err_t post_handler(httpd_req_t *req)
     else if (strcmp(req->uri, "/stop") == 0) {
       stop_recording(req);
     }
+    else if (strcmp(req->uri, "/info") == 0) {
+      get_camera_info(req);
+    }
     else {
       ESP_LOGE(TAG, "Invalid URI: %s", req->uri);
       httpd_resp_send(req, "Invalid URI", HTTPD_RESP_USE_STRLEN);
@@ -60,15 +64,24 @@ void server_initiation(void)
 
     // Register the GET handler
     httpd_uri_t uri_get = {
-        .uri = "/",
-        .method = HTTP_GET,
-        .handler = get_handler,
-        .user_ctx = NULL
-    };
-    httpd_register_uri_handler(server_handle, &uri_get);
+      .uri = "/",
+      .method = HTTP_GET,
+      .handler = get_handler,
+      .user_ctx = NULL
+  };
+  httpd_register_uri_handler(server_handle, &uri_get);
+
+    // Register the GET handler
+    httpd_uri_t uri_info = {
+      .uri = "/info",
+      .method = HTTP_GET,
+      .handler = post_handler,
+      .user_ctx = NULL
+  };
+  httpd_register_uri_handler(server_handle, &uri_info);
 
     // Register the POST handler
-    httpd_uri_t uri_post = {
+    httpd_uri_t uri_start = {
         .uri = "/start",
         .method = HTTP_POST,
         .handler = post_handler,
@@ -80,7 +93,7 @@ void server_initiation(void)
       .handler = post_handler,
       .user_ctx = NULL
     };
-    httpd_register_uri_handler(server_handle, &uri_post);
+    httpd_register_uri_handler(server_handle, &uri_start);
     httpd_register_uri_handler(server_handle, &uri_stop);
 
     ESP_LOGI(TAG, "HTTP server started and handlers registered");

@@ -8,45 +8,61 @@
         body {
             font-family: Arial, sans-serif;
             text-align: center;
-            padding: 50px;
+            padding: 20px;
         }
         h1 {
-            margin-bottom: 30px;
+            font-size: 2rem;
+            margin-bottom: 20px;
         }
-        .btn {
+        button {
+            font-size: 1.5rem;
+            padding: 15px 30px;
+            margin: 10px;
             display: block;
-            width: 100%;
+            width: 80%;
             max-width: 300px;
-            padding: 20px;
-            margin: 20px auto;
-            font-size: 20px;
-            cursor: pointer;
+            margin-left: auto;
+            margin-right: auto;
         }
-        #message {
+        #camera-info {
             margin-top: 20px;
-            font-size: 18px;
-            color: green;
+            padding: 10px;
+            border: 1px solid #ccc;
+            display: none;
+            text-align: left;
+            white-space: pre-wrap;
+            background-color: #f4f4f4;
         }
     </style>
 </head>
 <body>
     <h1>ESP32 Camera Control</h1>
-    <button class="btn" onclick="sendRequest('/start', 'Camera Start Sent')">Start Recording</button>
-    <button class="btn" onclick="sendRequest('/stop', 'Camera Stop Sent')">Stop Recording</button>
 
-    <p id="message"></p>
+    <button onclick="sendRequest('/start', 'Camera Start Sent')">Start Recording</button>
+    <button onclick="sendRequest('/stop', 'Camera Stop Sent')">Stop Recording</button>
+    <button onclick="getCameraInfo()">Get Camera Info</button>
+
+    <div id="camera-info"></div>
 
     <script>
         function sendRequest(endpoint, message) {
             fetch(endpoint, { method: 'POST' })
                 .then(response => response.text())
-                .then(() => {
-                    document.getElementById('message').textContent = message;
+                .then(data => {
+                    alert(message);
                 })
-                .catch(error => {
-                    console.error('Error:', error);
-                    document.getElementById('message').textContent = 'Error sending request';
-                });
+                .catch(error => console.error('Error:', error));
+        }
+
+        function getCameraInfo() {
+            fetch('/info', { method: 'GET' })
+                .then(response => response.text())
+                .then(data => {
+                    const infoDiv = document.getElementById('camera-info');
+                    infoDiv.textContent = data;
+                    infoDiv.style.display = 'block';
+                })
+                .catch(error => console.error('Error:', error));
         }
     </script>
 </body>
