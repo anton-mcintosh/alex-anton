@@ -1,45 +1,68 @@
-#include "ble_client.h"
+#include "ble_Client.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 #include "esp_log.h"
-#include "esp_bt.h"
-#include "esp_gap_ble_api.h"
-#include "esp_gattc_api.h"
-#include "esp_bt_main.h"
 
-static const char *TAG = "BLE_CLIENT";
+#include "nimble/nimble_port.h"
+#include "nimble/nimble_port_freertos.h"
+#include "host/ble_hs.h"
+#include "host/ble_gap.h"
 
-void ble_init(void) {
-    esp_err_t ret;
+static const char *TAG = "NIMBLE_CLIENT";
 
-    ESP_LOGI(TAG, "Initializing Bluetooth...");
-    ret = esp_bt_controller_mem_release(ESP_BT_MODE_CLASSIC_BT);
-    if (ret) {
-        ESP_LOGE(TAG, "Bluetooth memory release failed: %s", esp_err_to_name(ret));
+// Callback for BLE GAP events (e.g., connect/disconnect, discovery)
+static int ble_gap_event(struct ble_gap_event *event, void *arg) {
+    switch (event->type) {
+        case BLE_GAP_EVENT_CONNECT:
+            if (event->connect.status == 0) {
+                ESP_LOGI(TAG, "Connected to peer");
+            } else {
+                ESP_LOGI(TAG, "Connection failed; status=%d", event->connect.status);
+            }
+            break;
+        case BLE_GAP_EVENT_DISCONNECT:
+            ESP_LOGI(TAG, "Disconnected; reason=%d", event->disconnect.reason);
+            break;
+        default:
+            break;
     }
+    return 0;
+}
 
-    esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
-    ret = esp_bt_controller_init(&bt_cfg);
-    if (ret) {
-        ESP_LOGE(TAG, "Bluetooth controller initialization failed: %s", esp_err_to_name(ret));
-        return;
+// This callback is invoked once the NimBLE host has synchronized with the controller.
+static void ble_sync_callback(void) {
+    ESP_LOGI(TAG, "BLE Host Sync complete. Starting scan...");
+
+    // Set up discovery parameters
+    struct ble_gap_disc_params disc_params = {
+        .passive = 1,
+        .itvl = 0x0010,
+        .window = 0x0010,
+        .filter_policy = 0,
+        .limited = 0,
+        .filter_duplicates = 1,
+    };
+
+    int rc = ble_gap_disc(0, BLE_HS_FOREVER, &disc_params, ble_gap_event, NULL);
+    if (rc != 0) {
+        ESP_LOGE(TAG, "Failed to start discovery procedure; rc=%d", rc);
     }
+}
 
-    ret = esp_bt_controller_enable(ESP_BT_MODE_BLE);
-    if (ret) {
-        ESP_LOGE(TAG, "Bluetooth controller enable failed: %s", esp_err_to_name(ret));
-        return;
-    }
+// BLE Host task that runs the NimBLE event loop.
+static void ble_host_task(void *param) {
+    ESP_LOGI(TAG, "BLE Host Task Started");
+    nimble_port_run();
+    nimble_port_freertos_deinit();
+}
 
-    ret = esp_bluedroid_init();
-    if (ret) {
-        ESP_LOGE(TAG, "Bluedroid initialization failed: %s", esp_err_to_name(ret));
-        return;
-    }
+void ble_client_init(void) {
+    // Initialize the NimBLE port
+    nimble_port_init();
 
-    ret = esp_bluedroid_enable();
-    if (ret) {
-        ESP_LOGE(TAG, "Bluedroid enable failed: %s", esp_err_to_name(ret));
-        return;
-    }
+    // Configure the host; set the sync callback that will be called once initialization completes.
+    ble_hs_cfg.sync_cb = ble_sync_callback;
 
-    ESP_LOGI(TAG, "Bluetooth initialized successfully.");
+    // Start the NimBLE host task (FreeRTOS task)
+    nimble_port_freertos_init(ble_host_task);
 }
