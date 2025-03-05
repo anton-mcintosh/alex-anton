@@ -27,6 +27,7 @@
 
 #include "softAP.h"
 #include "webServer.h"
+#include "ble_Client.h"
 
 
 static const char *TAG = "wifi softAP";
@@ -69,4 +70,5 @@ void app_main(void)
     init_spiffs();
     wifi_init_softap();
     server_initiation();
+    ble_client_init();
 }
