@@ -1,69 +1,185 @@
-<!DOCTYPE HTML>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ESP32 Camera Control</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            padding: 20px;
-        }
-        h1 {
-            font-size: 2rem;
-            margin-bottom: 20px;
-        }
-        button {
-            font-size: 1.5rem;
-            padding: 15px 30px;
-            margin: 10px;
-            display: block;
-            width: 80%;
-            max-width: 300px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        #camera-info {
-            margin-top: 20px;
-            padding: 10px;
-            border: 1px solid #ccc;
-            display: none;
-            text-align: left;
-            white-space: pre-wrap;
-            background-color: #f4f4f4;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>GoPro Controller</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      margin-top: 30px;
+    }
+    button {
+      font-size: 1.2em;
+      padding: 10px 20px;
+      margin: 10px;
+    }
+    /* Spinner style */
+    .spinner {
+      border: 8px solid #f3f3f3;
+      border-top: 8px solid #3498db;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 2s linear infinite;
+      margin-left: 10px;
+      display: inline-block;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    select {
+      font-size: 1em;
+      width: 250px;
+      height: 150px;
+    }
+    .indicator {
+      display: none;
+      margin: 20px auto;
+      text-align: center;
+    }
+    /* For the scanning indicator, display label and spinner inline */
+    #scanningIndicator span {
+      vertical-align: middle;
+      font-size: 1.2em;
+    }
+  </style>
 </head>
 <body>
-    <h1>ESP32 Camera Control</h1>
-
-    <button onclick="sendRequest('/start', 'Camera Start Sent')">Start Recording</button>
-    <button onclick="sendRequest('/stop', 'Camera Stop Sent')">Stop Recording</button>
-    <button onclick="getCameraInfo()">Get Camera Info</button>
-
-    <div id="camera-info"></div>
-
-    <script>
-        function sendRequest(endpoint, message) {
-            fetch(endpoint, { method: 'POST' })
-                .then(response => response.text())
-                .then(data => {
-                    alert(message);
-                })
-                .catch(error => console.error('Error:', error));
-        }
-
-        function getCameraInfo() {
-            fetch('/info', { method: 'GET' })
-                .then(response => response.text())
-                .then(data => {
-                    const infoDiv = document.getElementById('camera-info');
-                    infoDiv.textContent = data;
-                    infoDiv.style.display = 'block';
-                })
-                .catch(error => console.error('Error:', error));
-        }
-    </script>
+  <h1>GoPro Controller</h1>
+  
+  <!-- Scan control buttons -->
+  <button id="startScanBtn" onclick="startScan()">Start Scan</button>
+  <button id="stopScanBtn" onclick="stopScan()" disabled>Stop Scan</button>
+  
+  <!-- Scanning indicator: label and spinner -->
+  <div id="scanningIndicator" class="indicator">
+    <span>Scanning...</span>
+    <div class="spinner"></div>
+  </div>
+  
+  <h2>Discovered GoPros</h2>
+  <select id="goproList" size="5"></select>
+  
+  <!-- Pair button -->
+  <button id="pairBtn" onclick="pairDevice()" disabled>Pair</button>
+  
+  <!-- Pairing indicator -->
+  <div id="pairingIndicator" class="indicator">
+    <span>Pairing....</span>
+    <div class="spinner"></div>
+  </div>
+  
+  <script>
+    let scanningActive = false;
+    let pairingActive = false;
+    
+    function updateButtons() {
+      document.getElementById("startScanBtn").disabled = scanningActive;
+      document.getElementById("stopScanBtn").disabled = !scanningActive;
+      document.getElementById("scanningIndicator").style.display = scanningActive ? "block" : "none";
+    }
+    
+    function startScan() {
+      // Ensure pairing indicator is hidden
+      pairingActive = false;
+      document.getElementById("pairingIndicator").style.display = "none";
+      
+      scanningActive = true;
+      updateButtons();
+      fetch('/startscan', { method: 'POST' })
+        .then(response => response.text())
+        .then(data => {
+          console.log('Start Scan response:', data);
+        })
+        .catch(err => {
+          console.error('Error starting scan:', err);
+          scanningActive = false;
+          updateButtons();
+        });
+    }
+    
+    function stopScan() {
+      scanningActive = false;
+      updateButtons();
+      fetch('/stopscan', { method: 'POST' })
+        .then(response => response.text())
+        .then(data => {
+          console.log('Stop Scan response:', data);
+        })
+        .catch(err => {
+          console.error('Error stopping scan:', err);
+          scanningActive = true;
+          updateButtons();
+        });
+    }
+    
+    function pairDevice() {
+      // When pairing is initiated, stop scanning.
+      stopScan();
+      
+      pairingActive = true;
+      document.getElementById("pairingIndicator").style.display = "block";
+      
+      let listElem = document.getElementById("goproList");
+      let selectedDevice = listElem.value;
+      if (!selectedDevice) {
+        alert("Please select a device to pair.");
+        pairingActive = false;
+        document.getElementById("pairingIndicator").style.display = "none";
+        return;
+      }
+      
+      console.log("Pairing with device:", selectedDevice);
+      fetch('/pair', { 
+          method: 'POST', 
+          body: JSON.stringify({ device: selectedDevice }), 
+          headers: { 'Content-Type': 'application/json' } 
+      })
+        .then(response => response.text())
+        .then(data => {
+          console.log('Pair response:', data);
+          alert("Pairing initiated with " + selectedDevice);
+          pairingActive = false;
+          document.getElementById("pairingIndicator").style.display = "none";
+        })
+        .catch(err => {
+          console.error('Error pairing device:', err);
+          pairingActive = false;
+          document.getElementById("pairingIndicator").style.display = "none";
+        });
+    }
+    
+    function updateDeviceList() {
+      fetch('/list')
+        .then(response => response.json())
+        .then(data => {
+          let listElem = document.getElementById("goproList");
+          let selectedValue = listElem.value;
+          listElem.innerHTML = "";
+          data.forEach(device => {
+            let option = document.createElement("option");
+            option.text = device;
+            option.value = device;
+            listElem.add(option);
+          });
+          listElem.value = selectedValue;
+          document.getElementById("pairBtn").disabled = (listElem.value === "");
+        })
+        .catch(err => {
+          console.error('Error updating device list:', err);
+        });
+    }
+    
+    // Poll the device list every 2 seconds.
+    setInterval(updateDeviceList, 2000);
+    
+    document.getElementById("goproList").addEventListener("change", function() {
+      document.getElementById("pairBtn").disabled = (this.value === "");
+    });
+    
+    updateButtons();
+  </script>
 </body>
 </html>
