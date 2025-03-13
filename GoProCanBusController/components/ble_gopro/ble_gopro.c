@@ -18,11 +18,6 @@
 
 static const char *TAG = "BLE_GOPRO";
 
-#define CONFIG_EXAMPLE_PEER_ADDR "ADDR_ANY"
-#if CONFIG_EXAMPLE_USE_CI_ADDRESS
-#define TEST_CI_ADDRESS_CHIP_OFFSET (7)
-#endif
-
 #ifndef BLE_ADDR_STR_LEN
 #define BLE_ADDR_STR_LEN 18
 #endif
@@ -40,6 +35,11 @@ static inline char *ble_addr_to_str(const ble_addr_t *addr, char *str)
     return str;
 }
 #endif
+
+// Global storage for discovered devices.
+char discoveredDevices[MAX_DEVICES][32];
+ble_addr_t discoveredDevicesAddr[MAX_DEVICES];
+int numDevices = 0;
 
 /*** The UUID of the service containing the subscribable characteristic ***/
 static const ble_uuid_t *remote_svc_uuid =
@@ -573,14 +573,9 @@ blecent_gap_event(struct ble_gap_event *event, void *arg)
     {
     case BLE_GAP_EVENT_DISC:
     {
-        ESP_LOGI(TAG, "Discovered device: %02x:%02x:%02x:%02x:%02x:%02x",
-                 event->disc.addr.val[5], event->disc.addr.val[4],
-                 event->disc.addr.val[3], event->disc.addr.val[2],
-                 event->disc.addr.val[1], event->disc.addr.val[0]);
-
         struct ble_gap_disc_desc *disc = &event->disc;
-        char addr_str[BLE_ADDR_STR_LEN];
-        ble_addr_to_str(&disc->addr, addr_str);
+
+        ESP_LOGI(TAG, "Discovered device: %s", addr_str(&disc->addr));
 
         bool is_gopro = false;
         uint8_t *adv_data = disc->data;
@@ -614,7 +609,7 @@ blecent_gap_event(struct ble_gap_event *event, void *arg)
         // **Only log GoPro devices**
         if (is_gopro)
         {
-            ESP_LOGI(TAG, "GoPro Discovered: %s (RSSI: %d dBm)", addr_str, disc->rssi);
+            ESP_LOGI(TAG, "GoPro Discovered: %s (RSSI: %d dBm)", addr_str(&disc->addr), disc->rssi);
             ESP_LOGI(TAG, "Raw Advertisement Data (%d bytes):", adv_length);
 
             for (int i = 0; i < adv_length; i++)
@@ -881,8 +876,8 @@ blecent_gap_event(struct ble_gap_event *event, void *arg)
         assert(rc == 0);
 
         // /* Set the default device name. */
-        // rc = ble_svc_gap_device_name_set("nimble-blecent");
-        // assert(rc == 0);
+        rc = ble_svc_gap_device_name_set("nimble-blegopro");
+        assert(rc == 0);
 
         /* XXX Need to have template for store */
         ble_store_config_init();

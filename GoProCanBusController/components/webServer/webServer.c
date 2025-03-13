@@ -2,7 +2,7 @@
 #include "softAP.h"
 #include "shutter.h"
 #include "cameraInfo.h"
-#include "discovery.h"
+// #include "discovery.h"
 // #include "pairing.h"
 #include "ble_gopro.h"
 #include "cJSON.h"

@@ -2,6 +2,7 @@
 #define BLE_GOPRO_H
 
 #include "esp_err.h"
+#include "host/ble_gap.h"
 
 struct ble_hs_adv_fields;
 struct ble_gap_conn_desc;
@@ -15,6 +16,12 @@ union ble_store_key;
 #define BLECENT_CHR_SUP_UNR_ALERT_CAT_UUID  0x2A48
 #define BLECENT_CHR_UNR_ALERT_STAT_UUID     0x2A45
 #define BLECENT_CHR_ALERT_NOT_CTRL_PT       0x2A44
+
+#define MAX_DEVICES 20
+
+extern char discoveredDevices[MAX_DEVICES][32];
+extern ble_addr_t discoveredDevicesAddr[MAX_DEVICES];
+extern int numDevices;
 
 // Function to initialize the BLE stack
 void ble_gopro_init(void);
