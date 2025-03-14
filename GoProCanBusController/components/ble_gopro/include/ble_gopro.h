@@ -1,32 +1,51 @@
 #ifndef BLE_GOPRO_H
 #define BLE_GOPRO_H
 
-#include "esp_err.h"
+#include "esp_log.h"
+#include "nvs_flash.h"
+#include "nimble/nimble_port.h"
+#include "nimble/nimble_port_freertos.h"
+#include "host/ble_hs.h"
 #include "host/ble_gap.h"
+#include "host/ble_hs_adv.h"
+#include "esp_bt.h"
 
-struct ble_hs_adv_fields;
-struct ble_gap_conn_desc;
-struct ble_hs_cfg;
-union ble_store_value;
-union ble_store_key;
+// BLE utility includes
+#include "host/util/util.h"
+#include "console/console.h"
+#include "services/gap/ble_svc_gap.h"
 
-#define BLECENT_SVC_ALERT_UUID              0x1811
-#define BLECENT_CHR_SUP_NEW_ALERT_CAT_UUID  0x2A47
-#define BLECENT_CHR_NEW_ALERT               0x2A46
-#define BLECENT_CHR_SUP_UNR_ALERT_CAT_UUID  0x2A48
-#define BLECENT_CHR_UNR_ALERT_STAT_UUID     0x2A45
-#define BLECENT_CHR_ALERT_NOT_CTRL_PT       0x2A44
+// Other module includes
+#include "peer.h"
+#include "misc.h"
 
+#define BLEGOPRO_QUERY_UUID              0xFEA6
+
+// Maximum devices discovered (adjust as needed)
 #define MAX_DEVICES 20
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+// Global variables (if they need to be accessed from other modules)
 extern char discoveredDevices[MAX_DEVICES][32];
 extern ble_addr_t discoveredDevicesAddr[MAX_DEVICES];
 extern int numDevices;
 
-// Function to initialize the BLE stack
+// Public API function prototypes
 void ble_gopro_init(void);
-
-// Initiate Scanning
 void ble_gopro_scan(void);
+void ble_host_task(void *param);
+
+// GAP event handler used by the scan; defined in ble_gopro_gap.c
+int blecent_gap_event(struct ble_gap_event *event, void *arg);
+
+// GATT subscription
+void subscribe_to_characteristics(const struct peer *peer);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // BLE_GOPRO_H
