@@ -36,23 +36,7 @@ static void blecent_on_disc_complete(const struct peer *peer, int status, void *
 
     MODLOG_DFLT(INFO, "Service discovery complete; status=%d conn_handle=%d\n",
                 status, peer->conn_handle);
-    
-    // /* Log all discovered services and characteristics */
-    // struct peer_svc *svc;
-    // SLIST_FOREACH(svc, &peer->svcs, next) {
-    //     char uuid_str[BLE_UUID_STR_LEN];
-    //     ble_uuid_to_str((ble_uuid_t *)&svc->svc.uuid, uuid_str);
-    //     MODLOG_DFLT(INFO, "Discovered Service: %s (Start Handle: %d, End Handle: %d)",
-    //                   uuid_str, svc->svc.start_handle, svc->svc.end_handle);
-
-    //     struct peer_chr *chr;
-    //     SLIST_FOREACH(chr, &svc->chrs, next) {
-    //         ble_uuid_to_str((ble_uuid_t *)&chr->chr.uuid, uuid_str);
-    //         MODLOG_DFLT(INFO, "  Characteristic: %s (Handle: %d, Properties: 0x%X)",
-    //                       uuid_str, chr->chr.val_handle, chr->chr.properties);
-    //     }
-    // }
-
+                
     subscribe_to_characteristics(peer);
 }
 

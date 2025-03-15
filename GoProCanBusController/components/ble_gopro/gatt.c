@@ -108,51 +108,51 @@ void subscribe_to_characteristics(const struct peer *peer)
     }
 }
 
-// // UUID for the control characteristic
-// static const ble_uuid128_t gopro_control_char_uuid =
-//     BLE_UUID128_INIT(0xb5, 0xf9, 0x00, 0x72, 0xaa, 0x8d, 0x11, 0xe3,
-//                      0x90, 0x46, 0x00, 0x02, 0xa5, 0xd5, 0xc5, 0x1b);
+// UUID for the control characteristic
+static const ble_uuid128_t gopro_control_char_uuid =
+    BLE_UUID128_INIT(0xb5, 0xf9, 0x00, 0x72, 0xaa, 0x8d, 0x11, 0xe3,
+                     0x90, 0x46, 0x00, 0x02, 0xa5, 0xd5, 0xc5, 0x1b);
 
-// // Function to send the "Set Shutter" command
-// static int
-// gopro_set_shutter(uint16_t conn_handle, uint16_t attr_handle, uint8_t value)
-// {
-//     struct os_mbuf *om;
-//     int rc;
+// Function to send the "Set Shutter" command
+static int
+gopro_set_shutter(uint16_t conn_handle, uint16_t attr_handle, uint8_t value)
+{
+    struct os_mbuf *om;
+    int rc;
 
-//     // Allocate a new mbuf for the write operation
-//     om = ble_hs_mbuf_from_flat(&value, sizeof(value));
-//     if (!om) {
-//         MODLOG_DFLT(ERROR, "Failed to allocate mbuf\n");
-//         return BLE_HS_ENOMEM;
-//     }
+    // Allocate a new mbuf for the write operation
+    om = ble_hs_mbuf_from_flat(&value, sizeof(value));
+    if (!om) {
+        MODLOG_DFLT(ERROR, "Failed to allocate mbuf\n");
+        return BLE_HS_ENOMEM;
+    }
 
-//     // Perform the GATT write
-//     rc = ble_gattc_write(conn_handle, attr_handle, om, NULL, NULL);
-//     if (rc != 0) {
-//         MODLOG_DFLT(ERROR, "Error: Failed to write characteristic; rc=%d\n", rc);
-//         return rc;
-//     }
+    // Perform the GATT write
+    rc = ble_gattc_write(conn_handle, attr_handle, om, NULL, NULL);
+    if (rc != 0) {
+        MODLOG_DFLT(ERROR, "Error: Failed to write characteristic; rc=%d\n", rc);
+        return rc;
+    }
 
-//     MODLOG_DFLT(INFO, "Set Shutter command sent successfully\n");
-//     return 0;
-// }
+    MODLOG_DFLT(INFO, "Set Shutter command sent successfully\n");
+    return 0;
+}
 
-// void
-// blecent_on_disc_complete2(const struct peer *peer, int status, void *arg)
-// {
-//     const struct peer_chr *chr;
+void
+blecent_on_disc_complete2(const struct peer *peer, int status, void *arg)
+{
+    const struct peer_chr *chr;
 
-//     // Find the control characteristic
-//     chr = peer_chr_find_uuid(peer,
-//                              BLE_UUID16_DECLARE(0xFEA6), // GoPro service UUID
-//                              &gopro_control_char_uuid.u);
-//     if (!chr) {
-//         MODLOG_DFLT(ERROR, "Control characteristic not found\n");
-//         ble_gap_terminate(peer->conn_handle, BLE_ERR_REM_USER_CONN_TERM);
-//         return;
-//     }
+    // Find the control characteristic
+    chr = peer_chr_find_uuid(peer,
+                             BLE_UUID16_DECLARE(0xFEA6), // GoPro service UUID
+                             &gopro_control_char_uuid.u);
+    if (!chr) {
+        MODLOG_DFLT(ERROR, "Control characteristic not found\n");
+        ble_gap_terminate(peer->conn_handle, BLE_ERR_REM_USER_CONN_TERM);
+        return;
+    }
 
-//     // Send the "Set Shutter" command with parameter 1
-//     gopro_set_shutter(peer->conn_handle, chr->chr.val_handle, 1);
-// }
+    // Send the "Set Shutter" command with parameter 1
+    gopro_set_shutter(peer->conn_handle, chr->chr.val_handle, 1);
+}
