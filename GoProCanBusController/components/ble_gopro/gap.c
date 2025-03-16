@@ -63,7 +63,7 @@ void ble_connect(void *disc)
     }
 
 #if CONFIG_EXAMPLE_EXTENDED_ADV
-    addr = &((struct ble_gap_ext_disc_desc *)disc)->addr;
+    addr = &((struct ble_gap_ext_disc_desc *)disc)->addr; // Do we need to use this for the GoPro??
 #else
     addr = &((struct ble_gap_disc_desc *)disc)->addr;
 #endif
@@ -77,6 +77,10 @@ void ble_connect(void *disc)
         return;
     }
     ESP_LOGI(TAG, "Connection complete!");
+
+    char addr_str_buf[18];
+    connected_camera.conn_id = addr->type, ble_addr_to_str(addr, addr_str_buf); // Store the camera address as a string
+    connected_camera.camera_address = *addr;
 }
 
 /**
@@ -159,7 +163,6 @@ int blecent_gap_event(struct ble_gap_event *event, void *arg)
                     }
                     pos += field_len + 1;
                 }
-
                 ble_connect(disc);
             }
             return 0;

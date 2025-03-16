@@ -28,6 +28,17 @@
 extern "C" {
 #endif
 
+// Camera structure
+typedef struct {
+    uint16_t conn_id;                  // Connection identifier
+    uint16_t shutter_char_handle;      // Handle for the shutter command characteristic
+    ble_addr_t camera_address;          // The camera's unique Bluetooth Device Address
+
+    // You can add more fields for other characteristics if needed
+} gopro_camera_t;
+
+static gopro_camera_t connected_camera;
+
 // Global variables (if they need to be accessed from other modules)
 extern char discoveredDevices[MAX_DEVICES][32];
 extern ble_addr_t discoveredDevicesAddr[MAX_DEVICES];
