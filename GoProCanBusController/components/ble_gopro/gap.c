@@ -25,8 +25,10 @@ static inline char *ble_addr_to_str(const ble_addr_t *addr, char *str)
 /**
  * Called when service discovery for a peer has completed.
  */
-static void blecent_on_disc_complete(const struct peer *peer, int status, void *arg)
+static void ble_on_disc_complete(const struct peer *peer, int status, void *arg)
 {
+    MODLOG_DFLT(INFO, "ble_on_disc_complete");
+    MODLOG_DFLT(INFO, "connection_handle: %d\n", connected_camera.connection_handle);
     if (status != 0) {
         MODLOG_DFLT(ERROR, "Error: Service discovery failed; status=%d conn_handle=%d\n",
                     status, peer->conn_handle);
@@ -37,7 +39,9 @@ static void blecent_on_disc_complete(const struct peer *peer, int status, void *
     MODLOG_DFLT(INFO, "Service discovery complete; status=%d conn_handle=%d\n",
                 status, peer->conn_handle);
                 
+    MODLOG_DFLT(INFO, "ble_on_disc_compelte end connection_handle: %d\n", connected_camera.connection_handle);
     subscribe_to_characteristics(peer);
+    assign_command_handle(peer);
 }
 
 /**
@@ -78,9 +82,6 @@ void ble_connect(void *disc)
     }
     ESP_LOGI(TAG, "Connection complete!");
 
-    char addr_str_buf[18];
-    connected_camera.conn_id = addr->type, ble_addr_to_str(addr, addr_str_buf); // Store the camera address as a string
-    connected_camera.camera_address = *addr;
 }
 
 /**
@@ -184,6 +185,9 @@ int blecent_gap_event(struct ble_gap_event *event, void *arg)
             ESP_LOGI(TAG, "GAP: BLE_GAP_EVENT_LINK_ESTAB");
             if (event->connect.status == 0) {
                 MODLOG_DFLT(INFO, "Connection established ");
+                // Assign the connection handle to your global camera structure.
+                connected_camera.connection_handle = event->connect.conn_handle;
+                MODLOG_DFLT(INFO, "Assigned camera connection_handle: %d\n", connected_camera.connection_handle);
                 rc = ble_gap_conn_find(event->connect.conn_handle, &desc);
                 assert(rc == 0);
                 print_conn_desc(&desc);
@@ -200,10 +204,12 @@ int blecent_gap_event(struct ble_gap_event *event, void *arg)
                                              BLE_ERR_REM_USER_CONN_TERM);
                 } else {
                     MODLOG_DFLT(INFO, "Connection secured\n");
+                    MODLOG_DFLT(INFO, "connection_handle: %d\n", connected_camera.connection_handle);
                 }
             } else {
                 MODLOG_DFLT(ERROR, "Error: Connection failed; status=%d\n", event->connect.status);
             }
+            MODLOG_DFLT(INFO, "connection_handle: %d\n", connected_camera.connection_handle);
             return 0;
         }
 
@@ -217,19 +223,26 @@ int blecent_gap_event(struct ble_gap_event *event, void *arg)
 
         case BLE_GAP_EVENT_DISC_COMPLETE: {
             MODLOG_DFLT(INFO, "discovery complete; reason=%d\n", event->disc_complete.reason);
+            // Assign the connection handle to your global camera structure.
+            connected_camera.connection_handle = event->connect.conn_handle;
+            MODLOG_DFLT(INFO, "connection_handle: %d\n", connected_camera.connection_handle);
             return 0;
         }
 
         case BLE_GAP_EVENT_ENC_CHANGE: {
             MODLOG_DFLT(INFO, "encryption change event; status=%d ", event->enc_change.status);
+            MODLOG_DFLT(INFO, "connection_handle: %d\n", connected_camera.connection_handle);
             rc = ble_gap_conn_find(event->enc_change.conn_handle, &desc);
             assert(rc == 0);
             print_conn_desc(&desc);
-            rc = peer_disc_all(event->connect.conn_handle, blecent_on_disc_complete, NULL);
+            MODLOG_DFLT(INFO, "connection_handle: %d\n", connected_camera.connection_handle);
+            rc = peer_disc_all(event->connect.conn_handle, ble_on_disc_complete, NULL);
             if (rc != 0) {
                 MODLOG_DFLT(ERROR, "Failed to discover services; rc=%d\n", rc);
                 return 0;
             }
+            connected_camera.connection_handle = event->connect.conn_handle;
+            MODLOG_DFLT(INFO, "connection_handle: %d\n", connected_camera.connection_handle);
             return 0;
         }
 

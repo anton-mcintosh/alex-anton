@@ -4,6 +4,8 @@
 
 static const char *TAG = "BLE_GOPRO";
 
+gopro_camera_t connected_camera;
+
 void ble_store_config_init(void);
 
 // Global storage for discovered devices.

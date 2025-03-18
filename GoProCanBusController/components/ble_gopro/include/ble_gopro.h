@@ -19,7 +19,9 @@
 #include "peer.h"
 #include "misc.h"
 
-#define BLEGOPRO_QUERY_UUID              0xFEA6
+#define BLEGOPRO_QUERY_UUID     0xFEA6
+#define GOPRO_SERVICE_UUID      0xFEA6
+
 
 // Maximum devices discovered (adjust as needed)
 #define MAX_DEVICES 20
@@ -28,16 +30,21 @@
 extern "C" {
 #endif
 
+static const ble_uuid_t *gopro_command_uuid = BLE_UUID128_DECLARE(
+    0x1b, 0xc5, 0xd5, 0xa5,
+    0x02, 0x00, 0x46, 0x90,
+    0xe3, 0x11, 0x8d, 0xaa,
+    0x72, 0x00, 0xf9, 0xb5
+);
+
 // Camera structure
 typedef struct {
-    uint16_t conn_id;                  // Connection identifier
-    uint16_t shutter_char_handle;      // Handle for the shutter command characteristic
-    ble_addr_t camera_address;          // The camera's unique Bluetooth Device Address
-
-    // You can add more fields for other characteristics if needed
+    uint16_t connection_handle;    // Connection handler
+    uint16_t command_handle;       // Handle for the shutter command characteristic
+    ble_addr_t camera_address;     // The camera's unique Bluetooth Device Address
 } gopro_camera_t;
 
-static gopro_camera_t connected_camera;
+extern gopro_camera_t connected_camera;
 
 // Global variables (if they need to be accessed from other modules)
 extern char discoveredDevices[MAX_DEVICES][32];
@@ -52,8 +59,10 @@ void ble_host_task(void *param);
 // GAP event handler used by the scan; defined in ble_gopro_gap.c
 int blecent_gap_event(struct ble_gap_event *event, void *arg);
 
-// GATT subscription
+// GATT functions
 void subscribe_to_characteristics(const struct peer *peer);
+void assign_command_handle(const struct peer *peer);
+void gopro_write_command(const uint8_t *data, uint16_t data_len);
 
 #ifdef __cplusplus
 }
