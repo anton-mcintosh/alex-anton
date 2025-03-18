@@ -7,8 +7,9 @@ void start_recording_ble()
 {
     ESP_LOGI(TAG, "Shutter requested!");
 
-    if (connected_camera.shutter_char_handle == 0) {
-        ESP_LOGE(TAG, "Shutter requested!");
-        return;
-    }
+        // Create a two-byte command array:
+        uint8_t shutter_command[4] = { 3, 1, 1, 1 };
+
+        // Send the command with the updated two-byte length.
+        gopro_write_command(shutter_command, sizeof(shutter_command));
 }
