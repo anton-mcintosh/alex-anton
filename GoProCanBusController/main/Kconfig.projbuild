@@ -38,9 +38,4 @@ menu "Configuration"
         default "10.71.79.1"
         help
             IP address of the Soft AP Gateway.
-    config HTTPD_MAX_REQ_HDR_LEN  
-        int "Max HTTPS Gateway Header Length"
-        default 1024
-        help
-            This sets the maximum supported size of headers section in HTTP request packet to be processed by the server
 endmenu
