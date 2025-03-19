@@ -74,7 +74,6 @@ void subscribe_to_characteristics(const struct peer *peer)
     // Iterate over all discovered services
     SLIST_FOREACH(svc, &peer->svcs, next)
     {
-        MODLOG_DFLT(INFO, "connection_handle: %d\n", connected_camera.connection_handle);
         char svc_uuid_str[BLE_UUID_STR_LEN];
         ble_uuid_to_str((const ble_uuid_t *)&svc->svc.uuid, svc_uuid_str);
         MODLOG_DFLT(INFO, "Found service with UUID: %s, handle range: %d - %d\n",
@@ -136,14 +135,12 @@ void subscribe_to_characteristics(const struct peer *peer)
                 }
             }
         }
-        MODLOG_DFLT(INFO, "connection_handle: %d\n", connected_camera.connection_handle);
     }
 }
 
 void assign_command_handle(const struct peer *peer)
 {
     MODLOG_DFLT(INFO, "Searching for the Command UUID");
-    MODLOG_DFLT(INFO, "connection_handle: %d\n", connected_camera.connection_handle);
     struct peer_svc *svc;
     struct peer_chr *chr;
     ble_uuid_t *chr_UUID;
